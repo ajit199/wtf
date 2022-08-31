@@ -24,51 +24,53 @@ async function registerUser(user) {
       if (!isValidEmail) {
         return { message: "Enter a valid email.", status: "Error" };
       }
+
+      let isEmailExists = await User.findOne({ email: user.email });
+      if (isEmailExists) {
+        return {
+          message: "Email is already registered try different one.",
+          status: "Error",
+        };
+      }
     }
     if (!user.mobile) {
       return { message: "mobile is required", status: "Error" };
+    } else {
+      let isMobileExists = await User.findOne({ mobile: user.mobile });
+      if (isMobileExists) {
+        return {
+          message: "Mobile no. is already registered try different one.",
+          status: "Error",
+        };
+      }
+
+      let isMobileValid = user.mobile.match(mobilePattern);
+      if (!isMobileValid) {
+        return {
+          message: "Enter valid mobile.",
+          status: "Error",
+        };
+      }
     }
     if (!user.password) {
       return { message: "password is required", status: "Error" };
+    } else {
+      let isPasswordCorrect = user.password.match(passwordPattern);
+      if (isPasswordCorrect) {
+        user.password = bcrypt.hashSync(user.password, 10);
+      } else {
+        return { message: "password is not correct.", status: "Error" };
+      }
     }
     if (!user.role) {
       return { message: "user role is required", status: "Error" };
+    } else {
+      if (!roles.includes(user.role)) {
+        return { message: "Enter a correct role.", status: "Error" };
+      }
     }
     if (!user.status) {
       return { message: "status is required", status: "Error" };
-    }
-    let isEmailExists = await User.findOne({ email: user.email });
-    if (isEmailExists) {
-      return {
-        message: "Email is already registered try different one.",
-        status: "Error",
-      };
-    }
-
-    let isMobileExists = await User.findOne({ mobile: user.mobile });
-    if (isMobileExists) {
-      return {
-        message: "Mobile no. is already registered try different one.",
-        status: "Error",
-      };
-    }
-    let isPasswordCorrect = user.password.match(passwordPattern);
-    if (isPasswordCorrect) {
-      user.password = bcrypt.hashSync(user.password, 10);
-    } else {
-      return { message: "password is not correct.", status: "Error" };
-    }
-
-    let isMobileValid = user.mobile.match(mobilePattern);
-    if (!isMobileValid) {
-      return {
-        message: "Enter valid mobile.",
-        status: "Error",
-      };
-    }
-
-    if (!roles.includes(user.role)) {
-      return { message: "Enter a correct role.", status: "Error" };
     }
     await User.create(user);
     return {
