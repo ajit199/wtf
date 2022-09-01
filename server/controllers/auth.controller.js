@@ -6,6 +6,7 @@ let emailPattern = /^\S+@\S+\.\S+$/;
 let mobilePattern = /^\d{10}$/;
 let roles = ["admin", "trainer", "member"];
 async function registerUser(user) {
+  // console.log(typeof user.status);
   try {
     if (!user) {
       return { message: "User Data is incorrect", status: "Error" };
@@ -39,7 +40,7 @@ async function registerUser(user) {
       let isMobileExists = await User.findOne({ mobile: user.mobile });
       if (isMobileExists) {
         return {
-          message: "Mobile no. is already registered try different one.",
+          message: "Mobile no. is already registered.",
           status: "Error",
         };
       }
@@ -62,15 +63,41 @@ async function registerUser(user) {
         return { message: "password is not correct.", status: "Error" };
       }
     }
+
+    if (
+      user.status == "true" ||
+      user.status == "false" ||
+      user.status === true ||
+      user.status === false
+    ) {
+    } else {
+      if (user.status === undefined) {
+        return { message: "status is required", status: "Error" };
+      }
+      return { message: "Enter correct status", status: "Error" };
+    }
+    // if (user.status) {
+    //   console.log(user.status);
+    //   // return { message: "status is required", status: "Error" };
+    // } else {
+    //   console.log(user.status, "else");
+    //   if (
+    //     user.status == "true" ||
+    //     user.status == "false" ||
+    //     user.status === true ||
+    //     user.status === false
+    //   ) {
+    //   } else {
+    //     return { message: "Enter correct status", status: "Error" };
+    //   }
+    // }
+
     if (!user.role) {
-      return { message: "user role is required", status: "Error" };
+      return { message: "role is required", status: "Error" };
     } else {
       if (!roles.includes(user.role)) {
         return { message: "Enter a correct role.", status: "Error" };
       }
-    }
-    if (!user.status) {
-      return { message: "status is required", status: "Error" };
     }
     await User.create(user);
     return {
@@ -89,13 +116,13 @@ async function loginUser({ email, password, role }) {
   if (!role) return { message: "role should not be blank.", status: "Error" };
   try {
     let user = await User.findOne({ email, role });
+
     if (!user) {
       return { message: "User not found.", status: "Error" };
     }
     if (!bcrypt.compareSync(password, user.password)) {
       return { message: "Password is incorrect", status: "Error" };
     }
-
     let token = jwt.sign(
       { id: user?._id, email: user?.email },
       process.env.SECRET_KEY,

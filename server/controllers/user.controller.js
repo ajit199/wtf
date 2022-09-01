@@ -16,6 +16,7 @@ const getAllUsers = async (request) => {
         firstname += name[i];
       }
     }
+    firstname = capitalFirstLetter(firstname);
     filters.first_name = firstname;
     let lastName = "";
     if (index !== null) {
@@ -27,13 +28,6 @@ const getAllUsers = async (request) => {
         filters.last_name = lastName;
       }
     }
-    // let nameArr = request.query.name.split(" ");
-    // if(nameArr.length === 1){
-    //     filters.first_name = nameArr[0];
-    // }else{
-
-    // }
-    // filters.name = request.query.name;
   }
   if (request.query.email) {
     filters.email = request.query.email;
@@ -56,12 +50,13 @@ const getAllUsers = async (request) => {
 };
 const getUser = async (request) => {
   let token = request.headers["authorization"]?.split(" ")[1];
-  //   console.log(token);
-  if (!token) {
-    return { message: "You have not authorized", status: "Error" };
+  let userDetails;
+  try {
+    userDetails = jwt.verify(token, process.env.SECRET_KEY);
+  } catch (error) {
+    return { message: "Token is expired or invalid.", status: "Error" };
   }
   try {
-    let userDetails = jwt.verify(token, process.env.SECRET_KEY);
     let { id } = userDetails;
     let user = await User.findOne({ _id: id });
     return { user, status: "Success" };
@@ -69,5 +64,9 @@ const getUser = async (request) => {
     return { message: "Internal Server Error", status: "Error" };
   }
 };
+
+function capitalFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
 
 module.exports = { getUser, getAllUsers };
