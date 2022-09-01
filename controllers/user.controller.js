@@ -25,6 +25,7 @@ const getAllUsers = async (request) => {
       }
 
       if (lastName.length > 0) {
+        lastName = capitalFirstLetter(lastName);
         filters.last_name = lastName;
       }
     }
